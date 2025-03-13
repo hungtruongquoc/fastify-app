@@ -6,16 +6,58 @@
     }
 </script>
 
-<div id="app">\{{ message }}</div>
+<div id="app">
+    <h3>\{{ message }}</h3>
+    <div id="news">
+        <h1>Latest Hacker News</h1>
+        <ul>
+            <li v-for="story in news" :key="story.id">
+                <a :href="story.url" target="_blank">\{{ story.title }}</a>
+                <span class="text-green-500"> (\{{ story.time_ago }} by \{{ story.by }})</span>
+            </li>
+        </ul>
+    </div>
+</div>
 
 <script type="module">
-    import { createApp, ref } from 'vue'
+    import { createApp, ref, onMounted, onUnmounted } from 'vue'
 
     createApp({
         setup() {
             const message = ref('Hello Vue!')
+            const news = ref([])
+
+            onMounted(() => {
+                const eventSource = new EventSource('/api/v1/news')
+
+                eventSource.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data)
+
+                        if (Array.isArray(data)) {
+                            // If the data is an array, add all stories at once
+                            news.value.push(...data)
+                        } else {
+                            // If it's a single object, push it normally
+                            news.value.push(data)
+                        }
+                    } catch (error) {
+                        console.error('Error parsing event data:', error)
+                    }
+                }
+
+                eventSource.onerror = () => {
+                    eventSource.close()
+                }
+
+                // Cleanup when the component is destroyed
+                onUnmounted(() => {
+                    eventSource.close()
+                })
+            })
+
             return {
-                message
+                message, news
             }
         }
     }).mount('#app')
