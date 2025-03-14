@@ -1,13 +1,28 @@
 const crypto = require('crypto');
 
 module.exports = async (fastify, opts) => {
+    const {models} = fastify;
+
     fastify.get('/', async (request, reply) => {
         const users = fastify.db.prepare(`SELECT *
                                           FROM users`).all();
         return {data: users};
     })
 
-    fastify.get('/:id', async (request, reply) => {
+    fastify.get('/:id', {
+        schema: {
+            params: {
+                type: 'object',
+                properties: {
+                    id: models.requestParam.id
+                },
+                required: ['id']
+            },
+            response: {
+                200: models.requestBody(models.user)
+            }
+        }
+    }, async (request, reply) => {
         const {id} = request.params;
         try {
             const user = fastify.db.prepare(`SELECT *
@@ -25,7 +40,7 @@ module.exports = async (fastify, opts) => {
 
     fastify.post('/', {
         schema: {
-            body: fastify.models.requestBody(fastify.models.user)
+            body: models.requestBody(models.user)
         }
     }, async (request, reply) => {
         const { data: {email, password, name} } = request.body
