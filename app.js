@@ -2,12 +2,18 @@
 
 const path = require('node:path')
 const AutoLoad = require('@fastify/autoload')
-
+const forbiddenMethods = ['POST', 'PUT', 'DELETE']
 // Pass --options via CLI arguments in command to enable these options.
 const options = {}
 
 module.exports = async function (fastify, opts) {
   // Place here your custom code!
+  // 🔹 Block unsupported HTTP methods globally
+  fastify.addHook('onRequest', async (request, reply) => {
+    if (forbiddenMethods.includes(request.method)) {
+      throw fastify.httpErrors.methodNotAllowed();
+    }
+  });
 
   // Do not touch the following lines
 
