@@ -2,7 +2,7 @@
 
 const path = require('node:path')
 const AutoLoad = require('@fastify/autoload')
-const forbiddenMethods = ['POST', 'PUT', 'DELETE']
+const forbiddenMethods = ['PUT', 'DELETE']
 // Pass --options via CLI arguments in command to enable these options.
 const options = {}
 
